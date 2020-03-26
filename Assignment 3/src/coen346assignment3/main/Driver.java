@@ -6,38 +6,62 @@ import java.util.ArrayList;
 public class Driver {
 
 	public static void main(String[] args) throws FileNotFoundException {
+		// Output file created and System.out set to output to file
+		/*PrintStream output = new PrintStream(new File("output.txt"));
+		System.setOut(output);*/
 
 		// Processes read from file, line from input file stored in array list
-		ArrayList<String> inProcesses = readInput("processes.txt");
+		ArrayList<String> inProcesses = readInputFile("processes.txt");
 		System.out.println(inProcesses); // Debug statement to check if file read properly
 
 		// Number of processes defined
 		int processNum = inProcesses.size();
+
+		// Process created and added to array
 		Process[] processArray = createProcesses(processNum, inProcesses);
 
-		// Output file created and System.out set to output to file
-		/*PrintStream output = new PrintStream(new File("output.txt"));
-		System.setOut(output);*/
+		// Debug print statement to check that processes created properly
+		for (Process p: processArray) {
+			System.out.println("Process: " + p.getProcessID() + ", Arrival Time: " + p.getArrivalTime() + ", Burst Time: " + p.getBurstTime());
+		}
+
+		// Read memory
+		int memSize = readMemorySize("memconfig.txt");
+		System.out.println("Memory Size: " + memSize); // Debug statement to check if memory size read properly
 
 	}
 
 
 	/* Method to read input file line by line */
-	public static ArrayList<String> readInput(String fileName) {
-		ArrayList<String> inLine = new ArrayList<>();
+	public static ArrayList<String> readInputFile(String fileName) {
+		ArrayList<String> input = new ArrayList<>();
 		try {
 			InputStream is = new FileInputStream(fileName); // Input stream from file opened
 			BufferedReader br = new BufferedReader(new InputStreamReader(is)); // Line stored in buffered reader
 			String readLine; // String storing the line read
 			while ((readLine = br.readLine()) != null) {
-				inLine.add(readLine); // Line read added to array list of all processes (lines read)
+				input.add(readLine); // Line read added to array list of all processes (lines read)
 			}
 			br.close();
-		} catch (Exception e) { // If file fails to be read, exception generated and error message shown
+		} catch (IOException e) { // If file fails to be read, exception generated and error message shown
 			e.printStackTrace();
 			System.err.println("Error reading file");
 		}
-		return inLine;
+		return input;
+	}
+
+	/* Method to read memory size */
+	public static int readMemorySize(String fileName) {
+		int frames = 0;
+		try {
+			InputStream is = new FileInputStream(fileName); // Input stream from file opened
+			BufferedReader br = new BufferedReader(new InputStreamReader(is)); // Line stored in buffered reader
+			frames = Integer.parseInt(br.readLine());
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("Error reading file");
+		}
+		return frames;
 	}
 
 	/* Method to create process objects from info from file and return array of processes */

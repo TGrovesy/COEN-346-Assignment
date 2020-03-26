@@ -2,3 +2,8 @@
 .settings/
 .project
 .classpath
+#Mark's Intellij stuff
+/.idea/
+*.iml
+/out/
+pas-3.pdf

@@ -3,6 +3,7 @@ package coen346assignment3.main;
 public class Process implements Runnable{
     /* Variables for process*/
     private int arrivalTime;
+    private int burstTime;
     private float remainingTime;
     private float time;
     private volatile Boolean hasCPU = false;
@@ -16,6 +17,7 @@ public class Process implements Runnable{
     /* Constructor */
     Process(int arrivalTime, int burstTime, int processID) {
         this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
         this.remainingTime = burstTime;
         this.processID = processID;
     }
@@ -58,6 +60,9 @@ public class Process implements Runnable{
     }
     public float getRemainingTime() {
         return remainingTime;
+    }
+    public int getBurstTime() {
+        return burstTime;
     }
 
     /* Setters */
