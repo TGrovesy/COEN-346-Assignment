@@ -11,16 +11,17 @@ public class Scheduler implements Runnable {
 
     /* Variables for scheduler */
     private int numProcesses;
-    private long time = 0;
-    private long startTime = System.currentTimeMillis();
+    private static long time = 0;
     private PriorityQueue<Process> arrivalQueue;
     private PriorityQueue<Process> readyQueue;
     private Boolean[] processFinished;
-    public Semaphore p_sem;
+    public static Semaphore cpuSem;
+    private long quantum;
 
-    Scheduler(Process[] processes, int numProcesses) {
-        p_sem = new Semaphore(1);
+    Scheduler(Process[] processes, int numProcesses, long quantum) {
+        cpuSem = new Semaphore(2);
         this.numProcesses = numProcesses;
+        this.quantum = quantum;
 
         // Create ready queue
         Comparator<Process> remainingTimeCompare = new RemainingTimeComparator();
@@ -58,46 +59,75 @@ public class Scheduler implements Runnable {
             if (!arrivalQueue.isEmpty()) { // If there are still processes that have arrived but not in ready queue
                 addToReadyQueue(arrivalQueue); // Add to ready queue
             }
-            if (!readyQueue.isEmpty()) // Temporary fix
-            {
+            if (readyQueue.size() > 1) { // Temporary fix
+                Process[] runProcesses = new Process[2];
+                runProcesses[0] = readyQueue.element();
+                readyQueue.remove();
+                runProcesses[1] = readyQueue.element();
+                readyQueue.remove();
                 try {
-                    runProcess(readyQueue.element()); // Run process with shorted remaining time
+                    runProcess(runProcesses); // Run process with shorted remaining time
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-
+            else if (readyQueue.size() == 1) {
+                try {
+                    Process runProcess = readyQueue.element();
+                    readyQueue.remove();
+                    runProcess(runProcess); // Run process with shorted remaining time
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     /* Method that executes a process for its quantum*/
     void runProcess(Process process) throws InterruptedException {
-        long schedulerTime = time;
-        // If process has never started, start the process
-        if (!process.getHasRun()) {
-            // Process knows that it has run
-            process.setHasRun(true);
-            System.out.println("Clock: " + schedulerTime + ", Process " + (process.getProcessID() + 1) + ": Started");
-        }
-
         // Process given CPU access, can now resume execution
-        process.acquireCPU(this);
-        System.out.println("Clock: " + schedulerTime + ", Process " + (process.getProcessID() + 1) + ": Resumed");
+        process.acquireCPU();
 
         // Scheduler waits until process indicates that it has paused
         //while (process.hasCPU) Thread.onSpinWait();
-        p_sem.acquire();
-        schedulerTime += process.getTimeRan();
-        System.out.println("Clock: " + schedulerTime + ", Process " + (process.getProcessID() + 1) + ": Paused");
+        cpuSem.acquire();
+        //System.out.println("Scheduler has CPU");
+        time += process.getTimeRan();
 
         // If the process reports to the scheduler that it has finished its execution
         if (process.getFinished()) {
-            System.out.println("Clock: " + schedulerTime + ", Process " + (process.getProcessID() + 1) + ": Finished");
             processFinished[process.getProcessID()] = true; // Process marked as finished
-            if (!readyQueue.isEmpty()) // Temporary fix
-                readyQueue.remove(); // Process removed from ready queue
         }
-        time += schedulerTime - time;
+        else {
+            readyQueue.add(process);
+        }
+    }
+
+    /* Method that executes a process for its quantum*/
+    void runProcess(Process[] process) throws InterruptedException {
+        // Process given CPU access, can now resume execution
+        process[0].acquireCPU();
+        process[1].acquireCPU();
+
+        // Scheduler waits until process indicates that it has paused
+        while (process[0].hasCPU || process[1].hasCPU) Thread.onSpinWait();
+        //cpuSem.acquire(2);
+        //System.out.println("Scheduler has CPU");
+        time += quantum;
+
+        // If the process reports to the scheduler that it has finished its execution
+        if (process[0].getFinished()) {
+            processFinished[process[0].getProcessID()] = true; // Process marked as finished
+        }
+        if (!process[0].getFinished()) {
+            readyQueue.add(process[0]);
+        }
+        if (process[1].getFinished()) {
+            processFinished[process[1].getProcessID()] = true; // Process marked as finished
+        }
+        if (!process[1].getFinished()) {
+            readyQueue.add(process[1]);
+        }
     }
 
     /* Method that adds all processes entering scheduler to the arrival queue */
@@ -111,6 +141,13 @@ public class Scheduler implements Runnable {
         if (arrivalQueue.element().getArrivalTime() <= time) {
             readyQueue.add(arrivalQueue.element()); // Added to ready queue
             arrivalQueue.remove(); // Removed from arrival queue
+        }
+        // Add second process
+        if (!arrivalQueue.isEmpty()) {
+            if (arrivalQueue.element().getArrivalTime() <= time) {
+                readyQueue.add(arrivalQueue.element()); // Added to ready queue
+                arrivalQueue.remove(); // Removed from arrival queue
+            }
         }
     }
 
@@ -126,6 +163,9 @@ public class Scheduler implements Runnable {
         return done;
     }
 
+    public synchronized static long getTime() {
+        return time;
+    }
 }
 
 /* Comparator to implement ready queue (sort by time remaining) */

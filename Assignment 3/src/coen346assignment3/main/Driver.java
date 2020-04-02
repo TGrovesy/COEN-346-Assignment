@@ -9,7 +9,7 @@ public class Driver {
 		// Output file created and System.out set to output to file
 		PrintStream output = new PrintStream(new File("output.txt"));
 		//System.setOut(output);
-		int quantum = 3000;
+		int quantum = 1000;
 
 		// Processes read from file, line from input file stored in array list
 		ArrayList<String> inProcesses = readInputFile("processes.txt");
@@ -34,12 +34,11 @@ public class Driver {
 		System.out.println("---End of Debug Statements---\n");
 
 		// Processes added to scheduler
-		Scheduler scheduler = new Scheduler(processArray, processNum);
+		Scheduler scheduler = new Scheduler(processArray, processNum, quantum);
 
 		Thread schedulerThread = new Thread(scheduler);
 		schedulerThread.start();
 	}
-
 
 	/* Method to read input file line by line */
 	public static ArrayList<String> readInputFile(String fileName) {
