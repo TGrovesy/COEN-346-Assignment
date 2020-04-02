@@ -1,1 +1,6 @@
 /bin/
+#Mark's Intellij stuff
+/.idea/
+*.iml
+/out/
+pas-3.pdf
