@@ -7,7 +7,7 @@ public class Process implements Runnable{
     private long arrivalTime;
     private long burstTime;
     private long remainingTime;
-    volatile Boolean hasCPU = false;
+    private volatile Boolean hasCPU = false;
     private Boolean isFinished = false;
     private int quantum;
     private Boolean hasRun = false;

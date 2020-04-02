@@ -1,11 +1,9 @@
 package coen346assignment3.main;
 
-import java.sql.Time;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 public class Scheduler implements Runnable {
 
@@ -110,9 +108,7 @@ public class Scheduler implements Runnable {
         process[1].acquireCPU();
 
         // Scheduler waits until process indicates that it has paused
-        while (process[0].hasCPU || process[1].hasCPU) Thread.onSpinWait();
-        //cpuSem.acquire(2);
-        //System.out.println("Scheduler has CPU");
+        cpuSem.acquire(2);
         time += quantum;
 
         // If the process reports to the scheduler that it has finished its execution
