@@ -25,11 +25,11 @@ public class Process implements Runnable{
 
     @Override
     public void run() {
-        while (!isFinished) {
+        while (!isFinished) { // When process is finished, thread will close
             while (!hasCPU) Thread.onSpinWait();
             long time = Scheduler.getTime();
             if (!hasRun) {
-                // Process knows that it has run
+                // Process starts up for first time
                 hasRun = true;
                 System.out.println("Clock: " + time + ", Process " + (processID + 1) + ": Started");
             }
@@ -37,12 +37,13 @@ public class Process implements Runnable{
             timeRan = Math.min(remainingTime, quantum); // Process will run for either the whole quantum or earlier if time remaining is less than the quantum
             remainingTime -= timeRan; // Time ran deducted from time remaining for the process to execute
             time += timeRan;
+            // Do whatever operations here
             System.out.println("Clock: " + time + ", Process " + (processID + 1) + ": Paused");
             if (remainingTime <= 0) { // If the process is done
                 isFinished = true; // Process signals to scheduler that it is done execution
                 System.out.println("Clock: " + time + ", Process " + (processID + 1) + ": Finished");
             }
-            releaseCPU();
+            releaseCPU(); // CPU given back to the scheduler, process will pause
         }
     }
 

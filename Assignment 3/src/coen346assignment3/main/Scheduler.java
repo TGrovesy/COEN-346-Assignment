@@ -39,6 +39,7 @@ public class Scheduler implements Runnable {
             pThread[i] = new Thread(processes[i]);
         }
 
+        // Start all threads
         for (Thread thread : pThread) {
             thread.start();
         }
@@ -57,23 +58,23 @@ public class Scheduler implements Runnable {
             if (!arrivalQueue.isEmpty()) { // If there are still processes that have arrived but not in ready queue
                 addToReadyQueue(arrivalQueue); // Add to ready queue
             }
-            if (readyQueue.size() > 1) { // Temporary fix
+            if (readyQueue.size() > 1) { // Two processes to run (more than one process in ready queue)
                 Process[] runProcesses = new Process[2];
                 runProcesses[0] = readyQueue.element();
                 readyQueue.remove();
                 runProcesses[1] = readyQueue.element();
                 readyQueue.remove();
                 try {
-                    runProcess(runProcesses); // Run process with shorted remaining time
+                    runProcess(runProcesses); // Run processes
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            else if (readyQueue.size() == 1) {
+            else if (readyQueue.size() == 1) { // Only one process to run (in ready queue)
                 try {
                     Process runProcess = readyQueue.element();
                     readyQueue.remove();
-                    runProcess(runProcess); // Run process with shorted remaining time
+                    runProcess(runProcess); // Run processes
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -87,17 +88,15 @@ public class Scheduler implements Runnable {
         process.acquireCPU();
 
         // Scheduler waits until process indicates that it has paused
-        //while (process.hasCPU) Thread.onSpinWait();
         cpuSem.acquire();
-        //System.out.println("Scheduler has CPU");
-        time += process.getTimeRan();
+        time += process.getTimeRan(); // Global time updated
 
         // If the process reports to the scheduler that it has finished its execution
         if (process.getFinished()) {
             processFinished[process.getProcessID()] = true; // Process marked as finished
         }
         else {
-            readyQueue.add(process);
+            readyQueue.add(process); // Otherwise added to ready queue again
         }
     }
 
@@ -109,20 +108,20 @@ public class Scheduler implements Runnable {
 
         // Scheduler waits until process indicates that it has paused
         cpuSem.acquire(2);
-        time += quantum;
+        time += quantum; // Global time updated
 
         // If the process reports to the scheduler that it has finished its execution
         if (process[0].getFinished()) {
             processFinished[process[0].getProcessID()] = true; // Process marked as finished
         }
         if (!process[0].getFinished()) {
-            readyQueue.add(process[0]);
+            readyQueue.add(process[0]); // Otherwise added to ready queue again
         }
         if (process[1].getFinished()) {
             processFinished[process[1].getProcessID()] = true; // Process marked as finished
         }
         if (!process[1].getFinished()) {
-            readyQueue.add(process[1]);
+            readyQueue.add(process[1]); // Otherwise added to ready queue again
         }
     }
 
@@ -138,7 +137,7 @@ public class Scheduler implements Runnable {
             readyQueue.add(arrivalQueue.element()); // Added to ready queue
             arrivalQueue.remove(); // Removed from arrival queue
         }
-        // Add second process
+        // Add second process to run concurrently if a second process has arrived
         if (!arrivalQueue.isEmpty()) {
             if (arrivalQueue.element().getArrivalTime() <= time) {
                 readyQueue.add(arrivalQueue.element()); // Added to ready queue
@@ -159,6 +158,7 @@ public class Scheduler implements Runnable {
         return done;
     }
 
+    /* Getters */
     public synchronized static long getTime() {
         return time;
     }
