@@ -10,16 +10,41 @@ import java.util.concurrent.TimeUnit;
 public class Scheduler implements Runnable {
 
     /* Variables for scheduler */
-    private static int numProcesses;
-    private static long time = 0;
-    private static long startTime = System.currentTimeMillis();
-    private static PriorityQueue<Process> arrivalQueue;
-    private static PriorityQueue<Process> readyQueue;
-    private static Boolean[] processFinished;
-    public static Semaphore p_sem;
+    private int numProcesses;
+    private long time = 0;
+    private long startTime = System.currentTimeMillis();
+    private PriorityQueue<Process> arrivalQueue;
+    private PriorityQueue<Process> readyQueue;
+    private Boolean[] processFinished;
+    public Semaphore p_sem;
 
-    Scheduler() {
+    Scheduler(Process[] processes, int numProcesses) {
         p_sem = new Semaphore(1);
+        this.numProcesses = numProcesses;
+
+        // Create ready queue
+        Comparator<Process> remainingTimeCompare = new RemainingTimeComparator();
+        readyQueue = new PriorityQueue<>(numProcesses, remainingTimeCompare);
+
+        // Create arrival queue
+        Comparator<Process> arrivalTimeCompare = new ArrivalTimeComparator();
+        arrivalQueue = new PriorityQueue<>(numProcesses, arrivalTimeCompare);
+
+        // Create arrays for wait times and finished status (initialize to false)
+        processFinished = new Boolean[numProcesses];
+        Arrays.fill(processFinished, false);
+
+        // Create threads
+        Thread[] pThread = new Thread[numProcesses];
+        for (int i = 0; i < processes.length; i++) {
+            pThread[i] = new Thread(processes[i]);
+        }
+
+        for (Thread thread : pThread) {
+            thread.start();
+        }
+
+        addToArrivalQueue(processes); // All processes added to arrival queue
     }
 
     @Override
@@ -56,7 +81,7 @@ public class Scheduler implements Runnable {
         }
 
         // Process given CPU access, can now resume execution
-        process.acquireCPU();
+        process.acquireCPU(this);
         System.out.println("Clock: " + schedulerTime + ", Process " + (process.getProcessID() + 1) + ": Resumed");
 
         // Scheduler waits until process indicates that it has paused
@@ -75,42 +100,13 @@ public class Scheduler implements Runnable {
         time += schedulerTime - time;
     }
 
-    /* Method that adds processes to the scheduler */
-    static void addProcesses(Process[] processes, int numProcesses) {
-        Scheduler.numProcesses = numProcesses;
-
-        // Create ready queue
-        Comparator<Process> remainingTimeCompare = new RemainingTimeComparator();
-        readyQueue = new PriorityQueue<>(numProcesses, remainingTimeCompare);
-
-        // Create arrival queue
-        Comparator<Process> arrivalTimeCompare = new ArrivalTimeComparator();
-        arrivalQueue = new PriorityQueue<>(numProcesses, arrivalTimeCompare);
-
-        // Create arrays for wait times and finished status (initialize to false)
-        processFinished = new Boolean[numProcesses];
-        Arrays.fill(processFinished, false);
-
-        // Create threads
-        Thread[] pThread = new Thread[numProcesses];
-        for (int i = 0; i < processes.length; i++) {
-            pThread[i] = new Thread(processes[i]);
-        }
-
-        for (Thread thread : pThread) {
-            thread.start();
-        }
-
-        addToArrivalQueue(processes); // All processes added to arrival queue
-    }
-
     /* Method that adds all processes entering scheduler to the arrival queue */
-    static void addToArrivalQueue(Process[] processes) {
+    void addToArrivalQueue(Process[] processes) {
         arrivalQueue.addAll(Arrays.asList(processes).subList(0, numProcesses));
     }
 
     /* Method that adds processes to the ready queue once they have arrived */
-    static void addToReadyQueue (PriorityQueue<Process> arrivalQueue) {
+    void addToReadyQueue (PriorityQueue<Process> arrivalQueue) {
         // Current time is at or after the arrival time
         if (arrivalQueue.element().getArrivalTime() <= time) {
             readyQueue.add(arrivalQueue.element()); // Added to ready queue
@@ -119,7 +115,7 @@ public class Scheduler implements Runnable {
     }
 
     /* Method that determines whether all processes have completed */
-    static Boolean isDone() {
+    Boolean isDone() {
         boolean done = true;
         for (int i = 0; i < numProcesses; i++) {
             if (!processFinished[i]) {

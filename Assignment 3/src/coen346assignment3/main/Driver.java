@@ -34,14 +34,10 @@ public class Driver {
 		System.out.println("---End of Debug Statements---\n");
 
 		// Processes added to scheduler
-		Scheduler CPU1 = new Scheduler();
-		//Scheduler CPU2 = new Scheduler();
-		Scheduler.addProcesses(processArray, processNum);
+		Scheduler scheduler = new Scheduler(processArray, processNum);
 
-		Thread CPU1Thread = new Thread(CPU1);
-		//Thread CPU2Thread = new Thread(CPU2);
-		CPU1Thread.start();
-		//CPU2Thread.start();
+		Thread schedulerThread = new Thread(scheduler);
+		schedulerThread.start();
 	}
 
 

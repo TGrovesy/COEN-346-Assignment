@@ -13,6 +13,7 @@ public class Process implements Runnable{
     private Boolean hasRun = false;
     private int processID;
     private long timeRan;
+    Scheduler scheduler;
 
     /* Constructor */
     Process(int arrivalTime, int burstTime, int processID, int quantum) {
@@ -37,14 +38,15 @@ public class Process implements Runnable{
     }
 
     /* Method for process to acquire CPU */
-    public void acquireCPU() {
+    public void acquireCPU(Scheduler scheduler) {
         hasCPU = true;
+        this.scheduler = scheduler;
     }
 
     /* Method for process to release CPU to the scheduler */
     public void releaseCPU() {
         hasCPU = false;
-        Scheduler.p_sem.release(); // Process notifies scheduler to continue execution
+        scheduler.p_sem.release(); // Process notifies scheduler to continue execution
     }
 
     /* Getters */
