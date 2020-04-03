@@ -3,6 +3,7 @@ package coen346assignment3.main;
 import java.util.concurrent.TimeUnit;
 
 public class Process implements Runnable{
+
     /* Variables for process*/
     private long arrivalTime;
     private long burstTime;

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class Driver {
 
 	public static void main(String[] args) throws FileNotFoundException {
+
 		// Output file created and System.out set to output to file
 		PrintStream output = new PrintStream(new File("output.txt"));
 		//System.setOut(output);
