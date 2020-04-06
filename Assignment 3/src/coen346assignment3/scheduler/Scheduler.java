@@ -1,4 +1,6 @@
-package coen346assignment3.main;
+package coen346assignment3.scheduler;
+
+import coen346assignment3.process.Process;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -7,16 +9,22 @@ import java.util.concurrent.Semaphore;
 
 public class Scheduler implements Runnable {
 
-    /* Variables for scheduler */
     private int numProcesses;
-    private static long time = 0;
+    private static long clock = 0;
     private PriorityQueue<Process> arrivalQueue;
     private PriorityQueue<Process> readyQueue;
     private Boolean[] processFinished;
     public static Semaphore cpuSem;
     private long quantum;
 
-    Scheduler(Process[] processes, int numProcesses, long quantum) {
+    /**
+     * Constructor.
+     *
+     * @param processes Array of processes
+     * @param numProcesses Number of processes
+     * @param quantum Process quantum (time slice)
+     */
+    public Scheduler(Process[] processes, int numProcesses, long quantum) {
         cpuSem = new Semaphore(2);
         this.numProcesses = numProcesses;
         this.quantum = quantum;
@@ -47,13 +55,15 @@ public class Scheduler implements Runnable {
         addToArrivalQueue(processes); // All processes added to arrival queue
     }
 
+    /**
+     * Scheduler code to select and run processes that runs until finished.
+     */
     @Override
     public void run() {
-        // Run the processes until all are done
         while (!isDone()) {
             if (readyQueue.isEmpty() && !arrivalQueue.isEmpty()) { // If all arrived processes have run but some processes have not arrived yet
-                if (arrivalQueue.element().getArrivalTime() > time)
-                    time = arrivalQueue.element().getArrivalTime(); // Current time set to next process' arrival time
+                if (arrivalQueue.element().getArrivalTime() > clock)
+                    clock = arrivalQueue.element().getArrivalTime(); // Current clock time set to next process' arrival time
             }
             if (!arrivalQueue.isEmpty()) { // If there are still processes that have arrived but not in ready queue
                 addToReadyQueue(arrivalQueue); // Add to ready queue
@@ -74,7 +84,7 @@ public class Scheduler implements Runnable {
                 try {
                     Process runProcess = readyQueue.element();
                     readyQueue.remove();
-                    runProcess(runProcess); // Run processes
+                     runProcess(runProcess); // Run processes
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -82,14 +92,20 @@ public class Scheduler implements Runnable {
         }
     }
 
-    /* Method that executes a process for its quantum*/
-    void runProcess(Process process) throws InterruptedException {
+    /**
+     * Runs a single process.
+     *
+     * @param process Process to be run
+     * @throws InterruptedException Exception from semaphore
+     */
+    public void runProcess(Process process) throws InterruptedException {
         // Process given CPU access, can now resume execution
         process.acquireCPU();
 
         // Scheduler waits until process indicates that it has paused
-        cpuSem.acquire();
-        time += process.getTimeRan(); // Global time updated
+        Thread.sleep(10);
+        cpuSem.acquire(1);
+        clock += quantum; // Global time updated
 
         // If the process reports to the scheduler that it has finished its execution
         if (process.getFinished()) {
@@ -100,54 +116,72 @@ public class Scheduler implements Runnable {
         }
     }
 
-    /* Method that executes a process for its quantum*/
-    void runProcess(Process[] process) throws InterruptedException {
+    /**
+     * Runs two processes concurrently.
+     *
+     * @param process 2 processes to be run concurrently
+     * @throws InterruptedException Exception from semaphore
+     */
+    public void runProcess(Process[] process) throws InterruptedException {
         // Process given CPU access, can now resume execution
         process[0].acquireCPU();
         process[1].acquireCPU();
 
         // Scheduler waits until process indicates that it has paused
+        Thread.sleep(1);
         cpuSem.acquire(2);
-        time += quantum; // Global time updated
+        clock += quantum; // Global time updated
 
         // If the process reports to the scheduler that it has finished its execution
         if (process[0].getFinished()) {
             processFinished[process[0].getProcessID()] = true; // Process marked as finished
         }
-        if (!process[0].getFinished()) {
+        else if (!process[0].getFinished()) {
             readyQueue.add(process[0]); // Otherwise added to ready queue again
         }
         if (process[1].getFinished()) {
             processFinished[process[1].getProcessID()] = true; // Process marked as finished
         }
-        if (!process[1].getFinished()) {
+        else if (!process[1].getFinished()) {
             readyQueue.add(process[1]); // Otherwise added to ready queue again
         }
     }
 
-    /* Method that adds all processes entering scheduler to the arrival queue */
-    void addToArrivalQueue(Process[] processes) {
+    /**
+     * Adds all processes to arrival queue.
+     *
+     * @param processes Array of processes
+     */
+    public void addToArrivalQueue(Process[] processes) {
         arrivalQueue.addAll(Arrays.asList(processes).subList(0, numProcesses));
     }
 
-    /* Method that adds processes to the ready queue once they have arrived */
-    void addToReadyQueue (PriorityQueue<Process> arrivalQueue) {
+    /**
+     * Adds processes to ready queue once they arrive.
+     *
+     * @param arrivalQueue Arrival Queue
+     */
+    public void addToReadyQueue (PriorityQueue<Process> arrivalQueue) {
         // Current time is at or after the arrival time
-        if (arrivalQueue.element().getArrivalTime() <= time) {
+        if (arrivalQueue.element().getArrivalTime() <= clock) {
             readyQueue.add(arrivalQueue.element()); // Added to ready queue
             arrivalQueue.remove(); // Removed from arrival queue
         }
         // Add second process to run concurrently if a second process has arrived
         if (!arrivalQueue.isEmpty()) {
-            if (arrivalQueue.element().getArrivalTime() <= time) {
+            if (arrivalQueue.element().getArrivalTime() <= clock) {
                 readyQueue.add(arrivalQueue.element()); // Added to ready queue
                 arrivalQueue.remove(); // Removed from arrival queue
             }
         }
     }
 
-    /* Method that determines whether all processes have completed */
-    Boolean isDone() {
+    /**
+     * Determines if all processes have completed execution.
+     *
+     * @return is execution done
+     */
+    public Boolean isDone() {
         boolean done = true;
         for (int i = 0; i < numProcesses; i++) {
             if (!processFinished[i]) {
@@ -158,40 +192,12 @@ public class Scheduler implements Runnable {
         return done;
     }
 
-    /* Getters */
-    public synchronized static long getTime() {
-        return time;
-    }
-}
-
-/* Comparator to implement ready queue (sort by time remaining) */
-class RemainingTimeComparator implements Comparator<Process>{
-
-    @Override
-    public int compare(Process p1, Process p2) {
-        // If selected process has less time left than the one being compared
-        if (p1.getRemainingTime() < p2.getRemainingTime())
-            return -1;
-            // If selected process has more time left than the one being compared
-        else if (p1.getRemainingTime() > p2.getRemainingTime())
-            return 1;
-        else // If remaining times are the same, prioritize process that has been in system longer
-            return Long.compare(p1.getArrivalTime(), p2.getArrivalTime());
-    }
-}
-
-/* Comparator to implement arrival queue (sort by arrival time) */
-class ArrivalTimeComparator implements Comparator<Process>{
-
-    @Override
-    public int compare(Process p1, Process p2) {
-        // If selected process has less time left than the one being compared
-        if (p1.getArrivalTime() < p2.getArrivalTime())
-            return -1;
-            // If selected process has more time left than the one being compared
-        else if (p1.getArrivalTime() > p2.getArrivalTime())
-            return 1;
-        else // If two processes have same arrival times, prioritize one with least remaining time (burst time)
-            return Float.compare(p1.getRemainingTime(), p2.getRemainingTime());
+    /**
+     * Get clock time.
+     *
+     * @return current clock
+     */
+    public synchronized static long getClock() {
+        return clock;
     }
 }

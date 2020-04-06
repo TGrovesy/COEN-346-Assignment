@@ -1,5 +1,8 @@
 package coen346assignment3.main;
 
+import coen346assignment3.process.Process;
+import coen346assignment3.scheduler.Scheduler;
+
 import java.io.*;
 import java.util.ArrayList;
 
@@ -41,7 +44,11 @@ public class Driver {
 		schedulerThread.start();
 	}
 
-	/* Method to read input file line by line */
+	/**
+	 * Reads processes file
+	 * @param fileName File path
+	 * @return array list of process info
+	 */
 	public static ArrayList<String> readInputFile(String fileName) {
 		ArrayList<String> input = new ArrayList<>();
 		try {
@@ -59,7 +66,12 @@ public class Driver {
 		return input;
 	}
 
-	/* Method to read memory size */
+	/**
+	 * Reads the memory size
+	 *
+	 * @param fileName File path
+	 * @return memory size (frames)
+	 */
 	public static int readMemorySize(String fileName) {
 		int frames = 0;
 		try {
@@ -73,7 +85,14 @@ public class Driver {
 		return frames;
 	}
 
-	/* Method to create process objects from info from file and return array of processes */
+	/**
+	 * Creates array of processes
+	 *
+	 * @param processNum Number of processes
+	 * @param newProcesses Array of process start and burst time
+	 * @param quantum Quantum time
+	 * @return array of processes
+	 */
 	public static Process[] createProcesses(int processNum, ArrayList<String> newProcesses, int quantum) {
 		// Array of processes created
 		Process[] processes = new Process[processNum];
