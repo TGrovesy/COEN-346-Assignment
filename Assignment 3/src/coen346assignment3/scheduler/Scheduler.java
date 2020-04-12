@@ -9,12 +9,12 @@ public class Scheduler implements Runnable {
 
     private final int numProcesses;
     private static long clock = 0;
-    private PriorityQueue<Process> arrivalQueue;
-    private PriorityQueue<Process> readyQueue;
-    private Boolean[] processFinished;
+    private final PriorityQueue<Process> arrivalQueue;
+    private final PriorityQueue<Process> readyQueue;
+    private final Boolean[] processFinished;
     public static Semaphore cpuSem;
     private final long quantum;
-    private static Queue<String> commands;
+    public static Queue<String[]> commands;
 
 
     /**
@@ -24,7 +24,7 @@ public class Scheduler implements Runnable {
      * @param numProcesses Number of processes
      * @param quantum Process quantum (time slice)
      */
-    public Scheduler(Process[] processes, int numProcesses, long quantum, Queue<String> commands) {
+    public Scheduler(Process[] processes, int numProcesses, long quantum, Queue<String[]> commands) {
         cpuSem = new Semaphore(2);
         this.numProcesses = numProcesses;
         this.quantum = quantum;

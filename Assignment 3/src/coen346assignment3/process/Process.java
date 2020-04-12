@@ -1,5 +1,6 @@
 package coen346assignment3.process;
 
+import coen346assignment3.memory.MemoryManager;
 import coen346assignment3.scheduler.Scheduler;
 
 import java.util.concurrent.TimeUnit;
@@ -53,8 +54,7 @@ public class Process implements Runnable{
             while (commandTime <= remainingQuantum) {
                 remainingQuantum -= commandTime;
                 commandClock += commandTime;
-                System.out.println("Command Clock: " + commandClock +  ", Process: " + (processID + 1) + ", Command Time: " + commandTime + ", Remaining Quantum: " + remainingQuantum);
-                // Run command here
+                runCommand(clock, commandClock);
                 commandTime = commandTime();
             }
             clock += timeRan;
@@ -64,6 +64,35 @@ public class Process implements Runnable{
                 System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ": Finished");
             }
             releaseCPU(); // CPU given back to the scheduler, process will pause
+        }
+    }
+
+    /**
+     * Runs the next command.
+     * @param clock Clock
+     * @param commandClock Clock when command execution done
+     */
+    public void runCommand(long clock, long commandClock) {
+        if (!Scheduler.commands.isEmpty()) {
+            String[] command = Scheduler.commands.element();
+            Scheduler.commands.remove();
+            switch (command[0]) {
+                case "Store":
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", STORE"); // Debug
+                    //MemoryManager.memStore(command[1], Integer.parseInt(command[2]), commandClock, processID);
+                    break;
+                case "Release":
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", RELEASE"); // Debug
+                    //MemoryManager.memFree(command[1], commandClock, processID);
+                    break;
+                case "Lookup":
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", LOOKUP"); // Debug
+                    //MemoryManager.memLookup(command[1], commandClock, processID);
+                    break;
+                default:
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Incorrect Command Called");
+                    break;
+            }
         }
     }
 

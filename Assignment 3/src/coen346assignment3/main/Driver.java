@@ -15,7 +15,7 @@ public class Driver {
 		// Output file created and System.out set to output to file
 		PrintStream output = new PrintStream(new File("output.txt"));
 		//System.setOut(output);
-		int quantum = 1000;
+		int quantum = 1000; // ms
 
 		// Processes read from file, line from input file stored in array list
 		ArrayList<String> inProcesses = readFile("processes.txt");
@@ -39,8 +39,7 @@ public class Driver {
 		System.out.println("Quantum: " + quantum + "ms"); // Debug statement to check if memory size read properly
 
 		// Read commands
-		Queue<String> commands = new LinkedList<>(readFile("commands.txt"));
-		System.out.println(commands);
+		Queue<String[]> commands = createCommands("commands.txt");
 
 		System.out.println("---End of Debug Statements---\n");
 
@@ -112,5 +111,16 @@ public class Driver {
 			processes[i] = p; // New process added to processes array
 		}
 		return processes;
+	}
+
+	public static Queue<String[]> createCommands(String fileName) {
+		ArrayList<String> inCommands = readFile(fileName);
+		System.out.println(inCommands);
+		Queue<String[]> commands = new LinkedList<>();
+		for (String inCommand : inCommands) {
+			String[] split = inCommand.split(" ");
+			commands.add(split);
+		}
+		return commands;
 	}
 }
