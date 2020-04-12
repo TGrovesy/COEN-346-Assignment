@@ -2,20 +2,20 @@ package coen346assignment3.scheduler;
 
 import coen346assignment3.process.Process;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public class Scheduler implements Runnable {
 
-    private int numProcesses;
+    private final int numProcesses;
     private static long clock = 0;
     private PriorityQueue<Process> arrivalQueue;
     private PriorityQueue<Process> readyQueue;
     private Boolean[] processFinished;
     public static Semaphore cpuSem;
-    private long quantum;
+    private final long quantum;
+    private static Queue<String> commands;
+
 
     /**
      * Constructor.
@@ -24,10 +24,11 @@ public class Scheduler implements Runnable {
      * @param numProcesses Number of processes
      * @param quantum Process quantum (time slice)
      */
-    public Scheduler(Process[] processes, int numProcesses, long quantum) {
+    public Scheduler(Process[] processes, int numProcesses, long quantum, Queue<String> commands) {
         cpuSem = new Semaphore(2);
         this.numProcesses = numProcesses;
         this.quantum = quantum;
+        Scheduler.commands = commands;
 
         // Create ready queue
         Comparator<Process> remainingTimeCompare = new RemainingTimeComparator();
@@ -100,10 +101,11 @@ public class Scheduler implements Runnable {
      */
     public void runProcess(Process process) throws InterruptedException {
         // Process given CPU access, can now resume execution
+        // System.out.println("1 process"); // Debug statement
         process.acquireCPU();
 
         // Scheduler waits until process indicates that it has paused
-        Thread.sleep(10);
+        Thread.sleep(100);
         cpuSem.acquire(1);
         clock += quantum; // Global time updated
 
@@ -114,6 +116,7 @@ public class Scheduler implements Runnable {
         else {
             readyQueue.add(process); // Otherwise added to ready queue again
         }
+        // System.out.println("1 process end"); // Debug statement
     }
 
     /**
@@ -124,11 +127,12 @@ public class Scheduler implements Runnable {
      */
     public void runProcess(Process[] process) throws InterruptedException {
         // Process given CPU access, can now resume execution
+        // System.out.println("2 processes"); // Debug statement
         process[0].acquireCPU();
         process[1].acquireCPU();
 
         // Scheduler waits until process indicates that it has paused
-        Thread.sleep(1);
+        Thread.sleep(100);
         cpuSem.acquire(2);
         clock += quantum; // Global time updated
 
@@ -145,6 +149,7 @@ public class Scheduler implements Runnable {
         else if (!process[1].getFinished()) {
             readyQueue.add(process[1]); // Otherwise added to ready queue again
         }
+        // System.out.println("2 processes end"); // Debug statement
     }
 
     /**

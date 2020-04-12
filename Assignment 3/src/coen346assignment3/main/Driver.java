@@ -5,6 +5,8 @@ import coen346assignment3.scheduler.Scheduler;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Driver {
 
@@ -16,7 +18,7 @@ public class Driver {
 		int quantum = 1000;
 
 		// Processes read from file, line from input file stored in array list
-		ArrayList<String> inProcesses = readInputFile("processes.txt");
+		ArrayList<String> inProcesses = readFile("processes.txt");
 		System.out.println("------Debug Statements------");
 		System.out.println(inProcesses); // Debug statement to check if file read properly
 
@@ -35,11 +37,15 @@ public class Driver {
 		int memSize = readMemorySize("memconfig.txt");
 		System.out.println("Memory Size: " + memSize); // Debug statement to check if memory size read properly
 		System.out.println("Quantum: " + quantum + "ms"); // Debug statement to check if memory size read properly
+
+		// Read commands
+		Queue<String> commands = new LinkedList<>(readFile("commands.txt"));
+		System.out.println(commands);
+
 		System.out.println("---End of Debug Statements---\n");
 
-		// Processes added to scheduler
-		Scheduler scheduler = new Scheduler(processArray, processNum, quantum);
-
+		// Scheduler created and thread started
+		Scheduler scheduler = new Scheduler(processArray, processNum, quantum, commands);
 		Thread schedulerThread = new Thread(scheduler);
 		schedulerThread.start();
 	}
@@ -49,7 +55,7 @@ public class Driver {
 	 * @param fileName File path
 	 * @return array list of process info
 	 */
-	public static ArrayList<String> readInputFile(String fileName) {
+	public static ArrayList<String> readFile(String fileName) {
 		ArrayList<String> input = new ArrayList<>();
 		try {
 			InputStream is = new FileInputStream(fileName); // Input stream from file opened

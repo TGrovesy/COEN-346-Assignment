@@ -6,14 +6,14 @@ import java.util.concurrent.TimeUnit;
 
 public class Process implements Runnable{
 
-    private long arrivalTime;
-    private long burstTime;
+    private final long arrivalTime;
+    private final long burstTime;
     private long remainingTime;
     private volatile Boolean hasCPU = false;
     private Boolean isFinished = false;
-    private int quantum;
+    private final int quantum;
     private Boolean hasRun = false;
-    private int processID;
+    private final int processID;
 
     /**
      * Constructor.
@@ -47,8 +47,17 @@ public class Process implements Runnable{
             System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ": Resumed");
             long timeRan = Math.min(remainingTime, quantum); // Process will run for either the whole quantum or earlier if time remaining is less than the quantum
             remainingTime -= timeRan; // Time ran deducted from time remaining for the process to execute
+            long remainingQuantum = timeRan;
+            long commandTime = commandTime();
+            long commandClock = clock;
+            while (commandTime <= remainingQuantum) {
+                remainingQuantum -= commandTime;
+                commandClock += commandTime;
+                System.out.println("Command Clock: " + commandClock +  ", Process: " + (processID + 1) + ", Command Time: " + commandTime + ", Remaining Quantum: " + remainingQuantum);
+                // Run command here
+                commandTime = commandTime();
+            }
             clock += timeRan;
-            // Do whatever operations here
             System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ": Paused");
             if (remainingTime <= 0) { // If the process is done
                 isFinished = true; // Process signals to scheduler that it is done execution
@@ -71,6 +80,14 @@ public class Process implements Runnable{
     public void releaseCPU() {
         hasCPU = false;
         Scheduler.cpuSem.release(1); // Process notifies scheduler to continue execution
+    }
+
+    /**
+     * Returns random value between 400 and 600
+     * @return command execution time
+     */
+    public long commandTime() {
+        return (long) (Math.random() * (600 - 400)) + 400;
     }
 
     /**
