@@ -1,5 +1,6 @@
 package coen346assignment3.main;
 
+import coen346assignment3.memory.MemoryManager;
 import coen346assignment3.process.Process;
 import coen346assignment3.scheduler.Scheduler;
 
@@ -35,6 +36,7 @@ public class Driver {
 
 		// Read memory
 		int memSize = readMemorySize("memconfig.txt");
+		MemoryManager memManager = new MemoryManager(memSize);
 		System.out.println("Memory Size: " + memSize); // Debug statement to check if memory size read properly
 		System.out.println("Quantum: " + quantum + "ms"); // Debug statement to check if memory size read properly
 

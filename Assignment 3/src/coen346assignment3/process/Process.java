@@ -78,16 +78,19 @@ public class Process implements Runnable{
             Scheduler.commands.remove();
             switch (command[0]) {
                 case "Store":
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", STORE"); // Debug
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", STORE: Variable " + command[1] + ", Value: " + command[2]); // Debug
+                    MemoryManager.memStore(command[1], Integer.parseInt(command[2]));
                     //MemoryManager.memStore(command[1], Integer.parseInt(command[2]), commandClock, processID);
                     break;
                 case "Release":
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", RELEASE"); // Debug
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", RELEASE Variable " + command[1]); // Debug
+                    MemoryManager.memFree(command[1]);
                     //MemoryManager.memFree(command[1], commandClock, processID);
                     break;
                 case "Lookup":
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", LOOKUP"); // Debug
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", LOOKUP:  Variable " + command[1]); // Debug
                     //MemoryManager.memLookup(command[1], commandClock, processID);
+                    System.out.println(command[1] + " exists: " + MemoryManager.memLookup(command[1]));
                     break;
                 default:
                     System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Incorrect Command Called");

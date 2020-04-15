@@ -9,7 +9,7 @@ public abstract class StorageDivision {
 	protected String variableID;
 	protected int value;
 	
-	private Time lastAccess;
+	protected Time lastAccess;
 	
 	/**
 	 * returns value stored in storage division
