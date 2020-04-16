@@ -38,7 +38,7 @@ public class MemoryManager {
 	 * @param variableID
 	 * @param value
 	 */
-	public static void memStore(String variableID, int value) {
+	public synchronized static void memStore(String variableID, int value) {
 		if (usedMainMemory < mainMemorySize) {// Main memory is not full store as frame
 			for (int i = 0; i < mainMemory.length; i++) {// find free place to store
 				if (mainMemory[i] == null || mainMemory[i].GetVariableID().equals(variableID)) {// space free
@@ -60,7 +60,7 @@ public class MemoryManager {
 	 * 
 	 * @param variableID
 	 */
-	public static void memFree(String variableID) {
+	public synchronized static void memFree(String variableID) {
 		// check the main memory first
 		for (int i = 0; i < mainMemory.length; i++) {
 			if (mainMemory[i] != null) {// ensures memory location has something
@@ -105,7 +105,7 @@ public class MemoryManager {
 	 * @param variableID
 	 * @return does this ID Exist
 	 */
-	public static int memLookup(String variableID) {
+	public synchronized static int memLookup(String variableID) {
 		// check main memory first
 		int lastAccessedIndex = 0;
 

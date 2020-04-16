@@ -1,25 +1,24 @@
 Clock: 1000, Process 2, Started
 Clock: 1000, Process 2, Resumed
-Clock: 1596, Process 2, STORE: Variable 1, Value: 5
+Clock: 1562, Process 2, STORE: Variable 1, Value: 5
 Clock: 2000, Process 2, Paused
 Clock: 2000, Process 2, Resumed
 Clock: 2000, Process 1, Started
-Clock: 2465, Process 2, STORE: Variable 2, Value: 3
+Clock: 2584, Process 2, STORE: Variable 2, Value: 3
 Clock: 2000, Process 1, Resumed
-Clock: 2439, Process 1, STORE: Variable 3, Value: 7
-Clock: 3000, Process 2, Paused
-Clock: 3000, Process 2, Finished
-SWAP: Variable 2 with Variable 3
-Clock: 2872, Process 1, LOOKUP:  Variable 3, Value: 7
+Clock: 2478, Process 1, STORE: Variable 3, Value: 7
 Clock: 3000, Process 1, Paused
 Clock: 3000, Process 1, Finished
+Clock: 2990, Process 2, LOOKUP:  Variable 2, Value: 3
+Clock: 3000, Process 2, Paused
+Clock: 3000, Process 2, Finished
 Clock: 3000, Process 3, Started
 Clock: 3000, Process 3, Resumed
-SWAP: Variable 3 with Variable 2
-Clock: 3403, Process 3, LOOKUP:  Variable 2, Value: 3
-Clock: 3871, Process 3, RELEASE Variable 1
+SWAP: Variable 2 with Variable 3
+Clock: 3467, Process 3, LOOKUP:  Variable 3, Value: 7
 Clock: 4000, Process 3, Paused
 Clock: 4000, Process 3, Resumed
-Clock: 4467, Process 3, STORE: Variable 1, Value: 8
+Clock: 4435, Process 3, RELEASE Variable 1
+Clock: 4948, Process 3, STORE: Variable 1, Value: 8
 Clock: 5000, Process 3, Paused
 Clock: 5000, Process 3, Finished
