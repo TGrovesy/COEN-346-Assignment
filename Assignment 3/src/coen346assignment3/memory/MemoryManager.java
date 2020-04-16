@@ -14,7 +14,6 @@ public class MemoryManager {
 	private static Frame[] mainMemory;
 
 	private static int mainMemorySize;
-	private static int mainMemoryPointer = 0;
 	private static int usedMainMemory = 0;
 	
 	private static boolean vmAcceess = false;
@@ -45,7 +44,6 @@ public class MemoryManager {
 				if (mainMemory[i] == null || mainMemory[i].GetVariableID().equals(variableID)) {// space free
 					mainMemory[i] = new Frame(variableID, value);
 					usedMainMemory++;// Increase amount of memory used
-					//System.out.println("Wrote to Main Memory"); // TODO remove debug print
 					return;// stored successfuly so exit
 				}
 			}
@@ -69,13 +67,11 @@ public class MemoryManager {
 				if (mainMemory[i].GetVariableID().equals(variableID)) {// found
 					while(mainMemory[i].IsLocked());//wait while locked
 					mainMemory[i] = null; // delete what is at memory location
-					//System.out.println("Deleted Memory in Main Memory"); // TODO remove debug print
 					return;// been removed no need to access virtual memory
 				}
 			}
 		}
 		try {
-
 			String newVm = "";
 			while(IsVMAccessed());//wait
 			SetVMAccess(true);
@@ -98,7 +94,6 @@ public class MemoryManager {
 			vmWriter.write(newVm);
 			vmWriter.close();// ensure the file is closed
 			SetVMAccess(false);//realace
-			//System.out.println("Deleted Memory in VM"); // TODO remove debug print
 		} catch (FileNotFoundException e) {
 			System.out.println("Virtual Memory Not Found!");
 		}
@@ -112,7 +107,6 @@ public class MemoryManager {
 	 */
 	public static int memLookup(String variableID) {
 		// check main memory first
-		boolean freeSpot = false;
 		int lastAccessedIndex = 0;
 
 		for (int i = 0; i < mainMemory.length; i++) {// ensures our last accessed index doesn point to null if the
@@ -137,10 +131,8 @@ public class MemoryManager {
 					mainMemory[i].SetLocked(false);
 					return value;
 				}
-			} else {
-				// free spot, TODO read and swap
-				freeSpot = true;
 			}
+
 		}
 		Scanner vmScan = null;
 		try {// check virtual memory
@@ -223,27 +215,10 @@ public class MemoryManager {
 			vmWriter.write(newVm);
 			vmWriter.close();// ensure the file is closed
 			SetVMAccess(false);
-			//System.out.println("Wrote to VM"); // TODO remove debug print
 		} catch (FileNotFoundException e) {
 			System.out.println("Virtual Memory Not Found!");
 		}
 
-	}
-
-	/**
-	 * Store frame in our main memory
-	 * 
-	 * @param frame
-	 */
-	public static boolean StoreFrame(Frame frame) {
-		if (!(mainMemoryPointer >= mainMemorySize)) {
-			mainMemory[mainMemoryPointer++] = frame;// stores in our main memory array
-			return true;// success
-		} else {
-			// our main memory is full
-			System.out.println("Failed! Sorry Main Memory Is Full!");
-			return false;// fail
-		}
 	}
 
 }

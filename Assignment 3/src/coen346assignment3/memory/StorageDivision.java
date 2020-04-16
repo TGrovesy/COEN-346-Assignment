@@ -5,7 +5,6 @@ import java.time.LocalTime;
 
 public abstract class StorageDivision {
 
-	public static final int SIZE = 32; //TODO Not 32 need to find size
 	protected String variableID;
 	protected int value;
 	
@@ -30,16 +29,7 @@ public abstract class StorageDivision {
 		UpdateLastAccess();
 		return variableID;
 	}
-	
-	/**
-	 * 
-	 * @param value
-	 */
-	public void SetValue(int value) {
-		this.value = value;
-		UpdateLastAccess();
-	}
-	
+
 	private void UpdateLastAccess() {
 		this.lastAccess = Time.valueOf(LocalTime.now());
 	}

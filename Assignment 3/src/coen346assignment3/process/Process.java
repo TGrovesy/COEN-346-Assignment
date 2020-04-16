@@ -43,25 +43,25 @@ public class Process implements Runnable{
             if (!hasRun) {
                 // Process starts up for first time
                 hasRun = true;
-                System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ": Started");
+                System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Started");
             }
-            System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ": Resumed");
+            System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Resumed");
             long timeRan = Math.min(remainingTime, quantum); // Process will run for either the whole quantum or earlier if time remaining is less than the quantum
             remainingTime -= timeRan; // Time ran deducted from time remaining for the process to execute
-            long remainingQuantum = timeRan;
-            long commandTime = commandTime();
+            long remainingQuantum = timeRan; // Remaining time in quantum set
+            long commandTime = commandTime(); // Random time between 400-600ms for next command to run defined
             long commandClock = clock;
-            while (commandTime <= remainingQuantum) {
-                remainingQuantum -= commandTime;
-                commandClock += commandTime;
-                runCommand(clock, commandClock);
-                commandTime = commandTime();
+            while (commandTime <= remainingQuantum) { // While enough time is left for next command to run
+                remainingQuantum -= commandTime; // Time for command to run deducted from time left
+                commandClock += commandTime; // Clock when command has finished
+                runCommand(commandClock); // Select the next command to run and call API
+                commandTime = commandTime(); // New random time for the next command to run
             }
             clock += timeRan;
-            System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ": Paused");
+            System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Paused");
             if (remainingTime <= 0) { // If the process is done
                 isFinished = true; // Process signals to scheduler that it is done execution
-                System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ": Finished");
+                System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Finished");
             }
             releaseCPU(); // CPU given back to the scheduler, process will pause
         }
@@ -69,31 +69,26 @@ public class Process implements Runnable{
 
     /**
      * Runs the next command.
-     * @param clock Clock
      * @param commandClock Clock when command execution done
      */
-    public void runCommand(long clock, long commandClock) {
-        if (!Scheduler.commands.isEmpty()) {
+    public void runCommand(long commandClock) {
+        if (!Scheduler.commands.isEmpty()) { // Queue has a command to run
             String[] command = Scheduler.commands.element();
             Scheduler.commands.remove();
-            switch (command[0]) {
+            switch (command[0]) { // Select command from first parameter in command string array
                 case "Store":
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", STORE: Variable " + command[1] + ", Value: " + command[2]); // Debug
+                    System.out.println("Clock: " + commandClock + ", Process " + (processID + 1) + ", STORE: Variable " + command[1] + ", Value: " + command[2]); // Debug
                     MemoryManager.memStore(command[1], Integer.parseInt(command[2]));
-                    //MemoryManager.memStore(command[1], Integer.parseInt(command[2]), commandClock, processID);
                     break;
                 case "Release":
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", RELEASE Variable " + command[1]); // Debug
+                    System.out.println("Clock: " + commandClock + ", Process " + (processID + 1) + ", RELEASE Variable " + command[1]); // Debug
                     MemoryManager.memFree(command[1]);
-                    //MemoryManager.memFree(command[1], commandClock, processID);
                     break;
                 case "Lookup":
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", LOOKUP:  Variable " + command[1] + ", Value: " + MemoryManager.memLookup(command[1])); // Debug
-                    //MemoryManager.memLookup(command[1], commandClock, processID);
-                    //System.out.println(command[1] + " exists: " + MemoryManager.memLookup(command[1]));
+                    System.out.println("Clock: " + commandClock + ", Process " + (processID + 1) + ", LOOKUP:  Variable " + command[1] + ", Value: " + MemoryManager.memLookup(command[1])); // Debug
                     break;
-                default:
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Incorrect Command Called");
+                default: // Incorrect command called
+                    System.out.println("Clock: " + commandClock + ", Process " + (processID + 1) + ", Incorrect Command Called");
                     break;
             }
         }
@@ -152,14 +147,6 @@ public class Process implements Runnable{
      */
     public long getRemainingTime() {
         return remainingTime;
-    }
-
-    /**
-     * Returns process burst time.
-     * @return burst time
-     */
-    public long getBurstTime() {
-        return burstTime;
     }
 
 }

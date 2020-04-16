@@ -15,13 +15,11 @@ public class Driver {
 
 		// Output file created and System.out set to output to file
 		PrintStream output = new PrintStream(new File("output.txt"));
-		//System.setOut(output);
+		System.setOut(output);
 		int quantum = 1000; // ms
 
 		// Processes read from file, line from input file stored in array list
 		ArrayList<String> inProcesses = readFile("processes.txt");
-		System.out.println("------Debug Statements------");
-		System.out.println(inProcesses); // Debug statement to check if file read properly
 
 		// Number of processes defined
 		int processNum = inProcesses.size();
@@ -29,21 +27,13 @@ public class Driver {
 		// Process created and added to array
 		Process[] processArray = createProcesses(processNum, inProcesses, quantum);
 
-		// Debug print statement to check that processes created properly
-		for (Process p: processArray) {
-			System.out.println("Process: " + (p.getProcessID() + 1) + ", Arrival Time: " + p.getArrivalTime() + "ms, Burst Time: " + p.getBurstTime() + "ms");
-		}
-
 		// Read memory
 		int memSize = readMemorySize("memconfig.txt");
 		MemoryManager memManager = new MemoryManager(memSize);
-		System.out.println("Memory Size: " + memSize); // Debug statement to check if memory size read properly
-		System.out.println("Quantum: " + quantum + "ms"); // Debug statement to check if memory size read properly
 
 		// Read commands
 		Queue<String[]> commands = createCommands("commands.txt");
 
-		System.out.println("---End of Debug Statements---\n");
 
 		// Scheduler created and thread started
 		Scheduler scheduler = new Scheduler(processArray, processNum, quantum, commands);
@@ -115,9 +105,14 @@ public class Driver {
 		return processes;
 	}
 
+	/**
+	 * Creates queue of commands, composed of String arrays of comment parameters
+	 *
+	 * @param fileName file name
+	 * @return queue of commands
+	 */
 	public static Queue<String[]> createCommands(String fileName) {
 		ArrayList<String> inCommands = readFile(fileName);
-		System.out.println(inCommands);
 		Queue<String[]> commands = new LinkedList<>();
 		for (String inCommand : inCommands) {
 			String[] split = inCommand.split(" ");
