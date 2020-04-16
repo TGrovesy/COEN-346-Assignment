@@ -45,7 +45,7 @@ public class MemoryManager {
 				if (mainMemory[i] == null || mainMemory[i].GetVariableID().equals(variableID)) {// space free
 					mainMemory[i] = new Frame(variableID, value);
 					usedMainMemory++;// Increase amount of memory used
-					System.out.println("Wrote to Main Memory"); // TODO remove debug print
+					//System.out.println("Wrote to Main Memory"); // TODO remove debug print
 					return;// stored successfuly so exit
 				}
 			}
@@ -69,7 +69,7 @@ public class MemoryManager {
 				if (mainMemory[i].GetVariableID().equals(variableID)) {// found
 					while(mainMemory[i].IsLocked());//wait while locked
 					mainMemory[i] = null; // delete what is at memory location
-					System.out.println("Deleted Memory in Main Memory"); // TODO remove debug print
+					//System.out.println("Deleted Memory in Main Memory"); // TODO remove debug print
 					return;// been removed no need to access virtual memory
 				}
 			}
@@ -98,7 +98,7 @@ public class MemoryManager {
 			vmWriter.write(newVm);
 			vmWriter.close();// ensure the file is closed
 			SetVMAccess(false);//realace
-			System.out.println("Deleted Memory in VM"); // TODO remove debug print
+			//System.out.println("Deleted Memory in VM"); // TODO remove debug print
 		} catch (FileNotFoundException e) {
 			System.out.println("Virtual Memory Not Found!");
 		}
@@ -152,14 +152,14 @@ public class MemoryManager {
 				String[] lineSplit = line.split(",");
 				if (lineSplit[1].equals(variableID)) {
 					// TODO Memory Swap
+					vmScan.close();
+					SetVMAccess(false);
 					memFree(variableID);// removes current virtua storage of variable which will be in virtual memory
 					System.out.println("SWAP: Variable " + mainMemory[lastAccessedIndex].GetVariableID() + " with Variable " + lineSplit[1]);
 					Page temp = new Page(mainMemory[lastAccessedIndex].GetVariableID(), mainMemory[lastAccessedIndex].GetValue()); 
 					StorePage(temp);//moves it into virutal memory
 					mainMemory[lastAccessedIndex] = new Frame(lineSplit[1], Integer.parseInt(lineSplit[2]));
 
-					vmScan.close();
-					SetVMAccess(false);
 					return mainMemory[lastAccessedIndex].GetValue();
 				}
 			}
@@ -223,7 +223,7 @@ public class MemoryManager {
 			vmWriter.write(newVm);
 			vmWriter.close();// ensure the file is closed
 			SetVMAccess(false);
-			System.out.println("Wrote to VM"); // TODO remove debug print
+			//System.out.println("Wrote to VM"); // TODO remove debug print
 		} catch (FileNotFoundException e) {
 			System.out.println("Virtual Memory Not Found!");
 		}
