@@ -97,7 +97,7 @@ public class Process implements Runnable{
     /**
      * Method for process to acquire CPU.
      */
-    public void acquireCPU() {
+    public void signalCPU() {
         hasCPU = true;
     }
 
