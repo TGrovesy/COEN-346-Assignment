@@ -16,10 +16,20 @@ public class MemoryManager {
 	private static int mainMemorySize;
 	private static int mainMemoryPointer = 0;
 	private static int usedMainMemory = 0;
+	
+	private static boolean vmAcceess = false;
 
 	public MemoryManager(int memorySize) {
 		mainMemorySize = memorySize;
 		mainMemory = new Frame[memorySize];
+	}
+	
+	private static synchronized boolean IsVMAccessed() {
+		return vmAcceess;
+	}
+	
+	private synchronized static void SetVMAccess(boolean value) {
+		vmAcceess = value;
 	}
 
 	/**
@@ -55,8 +65,9 @@ public class MemoryManager {
 	public static void memFree(String variableID) {
 		// check the main memory first
 		for (int i = 0; i < mainMemory.length; i++) {
-			if (mainMemory[i] != null) {//ensures memory location has something
+			if (mainMemory[i] != null) {// ensures memory location has something
 				if (mainMemory[i].GetVariableID().equals(variableID)) {// found
+					while(mainMemory[i].IsLocked());//wait while locked
 					mainMemory[i] = null; // delete what is at memory location
 					System.out.println("Deleted Memory in Main Memory"); // TODO remove debug print
 					return;// been removed no need to access virtual memory
@@ -66,6 +77,8 @@ public class MemoryManager {
 		try {
 
 			String newVm = "";
+			while(IsVMAccessed());//wait
+			SetVMAccess(true);
 			Scanner vmScan = new Scanner(new File("vm.txt"));
 			while (vmScan.hasNext()) {
 				String line = vmScan.next();
@@ -77,11 +90,14 @@ public class MemoryManager {
 				newVm += line + "\n"; // copies in old line
 			}
 			vmScan.close();// close the file
-
+			SetVMAccess(false);
+			while(IsVMAccessed());
+			SetVMAccess(true);
 			// write vm
 			PrintWriter vmWriter = new PrintWriter(new File("vm.txt"));
 			vmWriter.write(newVm);
 			vmWriter.close();// ensure the file is closed
+			SetVMAccess(false);//realace
 			System.out.println("Deleted Memory in VM"); // TODO remove debug print
 		} catch (FileNotFoundException e) {
 			System.out.println("Virtual Memory Not Found!");
@@ -94,7 +110,7 @@ public class MemoryManager {
 	 * @param variableID
 	 * @return does this ID Exist
 	 */
-	public static boolean memLookup(String variableID) {
+	public static int memLookup(String variableID) {
 		// check main memory first
 		boolean freeSpot = false;
 		int lastAccessedIndex = 0;
@@ -106,58 +122,55 @@ public class MemoryManager {
 				break;
 			}
 		}
-
+		// search
 		for (int i = 0; i < mainMemory.length; i++) {
 
 			if (mainMemory[i] != null) {// prevents null comparison if memory location was freed
-				if (mainMemory[i].lastAccess.getTime() <= mainMemory[lastAccessedIndex].lastAccess.getTime()) {// if the
-																												// time
-																												// is
-																												// less
-																												// then
-																												// it is
-																												// older
-																												// because
-																												// of
-																												// how
-																												// system
-																												// time
-																												// works
+				if (mainMemory[i].lastAccess.getTime() <= mainMemory[lastAccessedIndex].lastAccess.getTime()) {// if the time is less then it is older because of how system time works
 					// new older index
 					lastAccessedIndex = i;
 				}
 				if (mainMemory[i].GetVariableID().equals(variableID)) {
-					return true;
+					while(mainMemory[i].IsLocked());//wait until locked relaced
+					mainMemory[i].SetLocked(true);
+					int value = mainMemory[i].GetValue();
+					mainMemory[i].SetLocked(false);
+					return value;
 				}
 			} else {
 				// free spot, TODO read and swap
 				freeSpot = true;
 			}
 		}
-
+		Scanner vmScan = null;
 		try {// check virtual memory
-			Scanner vmScan = new Scanner(new File("vm.txt"));
+			while(IsVMAccessed());//wait
+			SetVMAccess(true);
+			vmScan = new Scanner(new File("vm.txt"));
 			while (vmScan.hasNext()) {
 				String line = vmScan.next();
 				String[] lineSplit = line.split(",");
 				if (lineSplit[1].equals(variableID)) {
 					// TODO Memory Swap
 					memFree(variableID);// removes current virtua storage of variable which will be in virtual memory
-					System.out.println("SWAP: Variable " + mainMemory[lastAccessedIndex].GetVariableID()
-							+ " with Variable " + lineSplit[1]);
+					System.out.println("SWAP: Variable " + mainMemory[lastAccessedIndex].GetVariableID() + " with Variable " + lineSplit[1]);
+					Page temp = new Page(mainMemory[lastAccessedIndex].GetVariableID(), mainMemory[lastAccessedIndex].GetValue()); 
+					StorePage(temp);//moves it into virutal memory
 					mainMemory[lastAccessedIndex] = new Frame(lineSplit[1], Integer.parseInt(lineSplit[2]));
 
 					vmScan.close();
-					return true;
+					SetVMAccess(false);
+					return mainMemory[lastAccessedIndex].GetValue();
 				}
 			}
-			vmScan.close();
 
 		} catch (FileNotFoundException e) {
 			System.out.println("Could not find in virtul memory!");
 		}
-
-		return false;
+		vmScan.close();
+		SetVMAccess(false);
+		System.out.println("Variable does not exist!");
+		return -1;
 	}
 
 	/**
@@ -183,6 +196,8 @@ public class MemoryManager {
 		try {
 			String newVm = "";
 			boolean memoryAdded = false;
+			while(IsVMAccessed());//wait
+			SetVMAccess(true);
 			Scanner vmScan = new Scanner(new File("vm.txt"));
 			String[] memoryLocDelimeted = memoryLocValue.split(",");
 			while (vmScan.hasNext()) {
@@ -198,16 +213,21 @@ public class MemoryManager {
 				newVm += line + "\n"; // copies in old line
 			}
 			vmScan.close();// close the file
+			SetVMAccess(false);
 			if (!memoryAdded) {// if our new memory hasnt yet been added store it
 				newVm += memoryLocValue + "\n";
 			}
+			while(IsVMAccessed());//wait
+			SetVMAccess(true);
 			PrintWriter vmWriter = new PrintWriter(new File("vm.txt"));
 			vmWriter.write(newVm);
 			vmWriter.close();// ensure the file is closed
+			SetVMAccess(false);
 			System.out.println("Wrote to VM"); // TODO remove debug print
 		} catch (FileNotFoundException e) {
 			System.out.println("Virtual Memory Not Found!");
 		}
+
 	}
 
 	/**

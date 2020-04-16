@@ -11,6 +11,8 @@ public abstract class StorageDivision {
 	
 	protected Time lastAccess;
 	
+	protected boolean locked = false;
+	
 	/**
 	 * returns value stored in storage division
 	 * @return
@@ -40,5 +42,13 @@ public abstract class StorageDivision {
 	
 	private void UpdateLastAccess() {
 		this.lastAccess = Time.valueOf(LocalTime.now());
+	}
+	
+	public synchronized boolean IsLocked() {
+		return locked;
+	}
+	
+	public synchronized void SetLocked(boolean value) {
+		locked = value;
 	}
 }

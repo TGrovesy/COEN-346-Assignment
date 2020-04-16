@@ -88,9 +88,9 @@ public class Process implements Runnable{
                     //MemoryManager.memFree(command[1], commandClock, processID);
                     break;
                 case "Lookup":
-                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", LOOKUP:  Variable " + command[1]); // Debug
+                    System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", LOOKUP:  Variable " + command[1] + ", Value: " + MemoryManager.memLookup(command[1])); // Debug
                     //MemoryManager.memLookup(command[1], commandClock, processID);
-                    System.out.println(command[1] + " exists: " + MemoryManager.memLookup(command[1]));
+                    //System.out.println(command[1] + " exists: " + MemoryManager.memLookup(command[1]));
                     break;
                 default:
                     System.out.println("Clock: " + clock + ", Process " + (processID + 1) + ", Incorrect Command Called");
